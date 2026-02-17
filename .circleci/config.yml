@@ -1,0 +1,28 @@
+version: 2.1
+
+jobs:
+  build-arm64-bundle:
+    machine:
+      image: ubuntu-2204:current
+      resource_class: arm.medium
+    steps:
+      - checkout
+      - run:
+          name: Build Native ARM Lambda Image
+          command: |
+            cd ARM
+            docker build -t dspx-arm-packager -f Dockerfile.package .
+      - run:
+          name: Extract Lambda Bundle
+          command: |
+            docker create --name build-temp dspx-arm-packager
+            docker cp build-temp:/lambda_bundle.zip ./function-arm64.zip
+            docker rm build-temp
+      - store_artifacts:
+          path: function-arm64.zip
+          destination: builds
+
+workflows:
+  build-deploy:
+    jobs:
+      - build-arm64-bundle
