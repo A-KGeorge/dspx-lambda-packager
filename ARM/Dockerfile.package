@@ -4,7 +4,8 @@ RUN dnf install -y zip gcc-c++ make python3
 
 WORKDIR /var/task
 
-RUN npm install -g npm@latest
+# Update npm to meet dspx engine requirements (>=11.5.1)
+RUN npm install -g npm@11.5.1 || npm install -g npm@latest || true
 
 # Copy project files and your OPTIMIZED binding.gyp
 COPY package.json index.js binding.gyp ./
