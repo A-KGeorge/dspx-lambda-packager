@@ -7,21 +7,26 @@ WORKDIR /var/task
 # Update npm to meet dspx engine requirements (>=11.5.1)
 RUN npm install -g npm@11.5.1 || npm install -g npm@latest || true
 
-# Copy project files and your OPTIMIZED binding.gyp
-COPY package.json index.js binding.gyp ./
+# Copy project files (rename binding.gyp to avoid triggering build in root)
+COPY package.json index.js ./
+COPY binding.gyp ./optimized-binding.gyp
 
-RUN npm install --omit=dev && \
-    # Overwrite the library's generic gyp file with your optimized version
-    cp binding.gyp node_modules/dspx/binding.gyp && \
+# Install dspx (will use prebuilds, no rebuild in root)
+RUN npm install --omit=dev --force
+
+# Now rebuild with optimized binding.gyp for Graviton
+RUN cp optimized-binding.gyp node_modules/dspx/binding.gyp && \
     cd node_modules/dspx && \
     npx node-gyp rebuild && \
     mkdir -p prebuilds/linux-arm64 && \
     cp build/Release/dspx.node prebuilds/linux-arm64/dspx.node
 
 # Pruning (Keep as you had it)
-RUN cd node_modules/dspx && \
+RUN rm -f get-pip.py optimized-binding.gyp && \
+    cd node_modules/dspx && \
     rm -rf src/ build/ deps/ .github/ .vscode/ test/ && \
     rm -f README.md LICENSE .npmignore && \
+    rm -f binding.gyp && \
     find prebuilds/* -maxdepth 0 -not -name 'linux-arm64' -exec rm -rf {} +
 
 RUN zip -r /lambda_bundle.zip .
