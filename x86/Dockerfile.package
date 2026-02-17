@@ -1,0 +1,35 @@
+# Use the official AWS Lambda Node.js 22.x base image for x86_64 architecture
+FROM public.ecr.aws/sam/build-nodejs22.x:latest-x86_64 
+
+# Install build tools needed for native compilation
+RUN dnf install -y zip gcc-c++ make python3
+
+WORKDIR /var/task
+
+# Copy your project manifest, code, and the pip script
+# (Added a wildcard to get-pip.py so the build doesn't fail if it's missing locally)
+COPY package.json index.js get-pip.py* ./
+
+# 1. Build dspx from source inside the Lambda environment
+RUN npm install --production && \
+    cd node_modules/dspx && \
+    npx node-gyp rebuild && \
+    # Move the fresh GLIBC 2.34 binary to the path dspx expects
+    mkdir -p prebuilds/linux-x64 && \
+    cp build/Release/dspx.node prebuilds/linux-x64/dspx.node
+
+# 2. PRUNING: Remove dspx source, extra prebuilds, and documentation
+# Stripping these ensures the dspx folder contains only the required binary and distribution JS.
+RUN cd node_modules/dspx && \
+    rm -rf src/ build/ deps/ .github/ .vscode/ test/ && \
+    # Remove README.md and any other non-essential files
+    rm -f README.md LICENSE .npmignore && \
+    find prebuilds/* -maxdepth 0 -not -name 'linux-x64' -exec rm -rf {} +
+
+# 3. Explicitly remove get-pip.py from the working directory before zipping
+RUN rm -f get-pip.py
+
+# 4. Create the optimized deployment bundle
+RUN zip -r /lambda_bundle.zip .
+
+CMD ["sleep", "3600"]

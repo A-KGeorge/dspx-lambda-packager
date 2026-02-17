@@ -1,0 +1,12 @@
+# Architecture-specific artifacts
+*/node_modules/
+*/prebuilds/
+*/build/
+*/deps/
+
+# Bundle outputs
+*.zip
+
+# Logs and OS noise
+*.log
+.DS_Store
