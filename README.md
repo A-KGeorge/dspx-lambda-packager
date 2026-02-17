@@ -8,25 +8,33 @@ x86 build (Intel/AMD):
 
 1. Build the Docker image:
 
-   `docker build -t dspx-rebuild -f Dockerfile.package .`
+```bash
+docker build -t dspx-rebuild -f Dockerfile.package .
+```
 
 2. Run the container, copy the generated ZIP, and remove the container:
 
-   `docker run -d --name dspx-temp dspx-rebuild`
-   `docker cp dspx-temp:/lambda_bundle.zip ./function.zip`
-   `docker rm -f dspx-temp`
+```bash
+docker run -d --name dspx-temp dspx-rebuild
+docker cp dspx-temp:/lambda_bundle.zip ./function.zip
+docker rm -f dspx-temp
+```
 
 ARM build (ARM64):
 
 1. Build the Docker image for ARM64:
 
-   `docker build --platform linux/arm64 -t dspx-rebuild -f Dockerfile.package .`
+```bash
+docker build --platform linux/arm64 -t dspx-rebuild -f Dockerfile.package .
+```
 
 2. Run the container, copy the generated ZIP, and remove the container:
 
-   `docker run -d --name dspx-temp dspx-rebuild`
-   `docker cp dspx-temp:/lambda_bundle.zip ./function.zip`
-   `docker rm -f dspx-temp`
+```bash
+docker run -d --name dspx-temp dspx-rebuild
+docker cp dspx-temp:/lambda_bundle.zip ./function.zip
+docker rm -f dspx-temp
+```
 
 Notes:
 
