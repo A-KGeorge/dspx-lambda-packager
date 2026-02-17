@@ -10,7 +10,7 @@ RUN npm install -g npm@11.5.1 || npm install -g npm@latest || true
 # Copy project files and your OPTIMIZED binding.gyp
 COPY package.json index.js binding.gyp ./
 
-RUN npm install --omit=dev --ignore-scripts
+RUN npm install --omit=dev || (cat /root/.npm/_logs/*.log && exit 1)
 # Overwrite the library's generic gyp file with your optimized version
 # cp binding.gyp node_modules/dspx/binding.gyp && \
 # cd node_modules/dspx && \
